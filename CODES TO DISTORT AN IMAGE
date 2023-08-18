@@ -1,0 +1,67 @@
+#CODES TO DISTORT AN IMAGE      
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+input_image_path = r"C:\Users\Amylicious\Downloads\img_align_celeba\img_align_celeba\000001.jpg"
+image = cv2.imread(input_image_path)
+height, width = image.shape[:2] # getting the image size
+k1 = 0.5
+k2 = 0.2
+
+def fish_eye_distortion(image, k1, k2):
+ height, width, _ = image.shape
+
+ # Create an x, y coordinate grid for the image
+ x = np.linspace(-1, 1, width)
+ y = np.linspace(-1, 1, height)
+ x, y = np.meshgrid(x, y)
+
+ # r is the distance from the center
+ r = np.sqrt(x ** 2 + y ** 2)
+
+ # Apply the fisheye effect, based on the radial distance from the center
+ distorted_radius = r + k1 * r ** 3 + k2 * r ** 5
+
+ # Get the distorted x, y coordinates
+ x_distorted = distorted_radius * x / r
+ y_distorted = distorted_radius * y / r
+
+ # Map from distorted coordinates to original image coordinates
+ x_map = ((x_distorted + 1) * width) / 2
+ y_map = ((y_distorted + 1) * height) / 2
+
+ # Interpolate using remap with CONSTANT border mode and white as border value
+ distorted_image = cv2.remap(image, x_map.astype(np.float32), y_map.astype(np.float32),
+ interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=[255, 255, 255])
+
+ return distorted_image
+
+
+if image is None:
+ print("Error loading image.")
+else:
+ height, width = image.shape[:2]
+
+if __name__ == "__main__":
+ distorted_image = fish_eye_distortion(image, k1, k2)
+
+# Convert both original and distorted images to RGB for displaying using matplotlib
+original_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+distorted_image = cv2.cvtColor(distorted_image, cv2.COLOR_BGR2RGB)
+
+plt.figure(figsize=(10, 5))
+
+plt.subplot(1, 2, 1)
+plt.imshow(original_image)
+plt.title("Original Image")
+plt.axis('off')
+
+plt.subplot(1, 2, 2)
+plt.imshow(distorted_image)
+plt.title("Distorted Image")
+plt.axis('off')
+
+plt.tight_layout()
+plt.show()
+  
